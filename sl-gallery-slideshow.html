@@ -284,7 +284,7 @@
           <div id="imagePreviewList" class="image-preview-list">
             <template is="dom-repeat" items="{{_images}}" as="image">
               <div on-click="_showImage" class="image-preview-container" active$="[[_isPreviewImageActive(index, activeImage.index)]]">
-                <img class="image-preview" src="[[image.src]]" />
+                <img class="image-preview" src="[[image]]" />
                 <div class="image-preview-cover"></div>
               </div>
             </template>
@@ -455,7 +455,7 @@
         }
 
         this._imagesCount = this.gallery._images.length;
-        this._images = [...this.gallery._images];
+        this._images = this._getImageSources(this.gallery._images);
 
         // If no valid image index set, reset image and close slideshow
         if (index === '' || isNaN(index) || index < 0 || index >= this.gallery._images.length) {
@@ -514,6 +514,10 @@
 
       _getCurrentPhotoNumber(activeImageIndex) {
         return ++activeImageIndex;
+      }
+
+      _getImageSources(images) {
+        return images ? images.map(c => c.src) : [];
       }
 
       _preloadImage(image) {
