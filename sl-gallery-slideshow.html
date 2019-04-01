@@ -49,6 +49,47 @@
         height: 100vh;
       }
 
+      .image-previews {
+        width: 100%;
+        overflow: hidden;
+      }
+
+      .image-preview {
+        object-fit: cover;
+        height: 100%;
+        width: 100%;
+      }
+
+      .image-preview-list {
+        width: max-content;
+        text-align: start;
+        transition-duration: 0.3s;
+        transition-timing-function: ease-out;
+      }
+
+      .image-preview-container {
+        position: relative;
+        height: 64px;
+        box-sizing: border-box;
+        width: 111px;
+        position: relative;
+        float: left;
+        padding: 2px;
+      }
+
+      .image-preview-container .image-preview-cover {
+        background-color: #00000088;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
+      .image-preview-container[active] .image-preview-cover {
+        display: none;
+      }
+
       /* Overlay Animations */
 
       #overlay app-toolbar,
@@ -85,6 +126,7 @@
         text-align: center;
         --app-toolbar-font-size: 14px;
         color: #ddd;
+        flex-direction: column;
       }
 
       #overlay[toolbar-visible] app-toolbar.header {
@@ -92,10 +134,25 @@
         visibility: visible;
       }
 
-      #overlay[toolbar-visible] app-toolbar.footer[has-caption] {
+      #overlay[toolbar-visible] app-toolbar.footer {
+        opacity: 1;
         bottom: 0;
+        visibility: visible;
+      }
+
+      #overlay[toolbar-visible] app-toolbar.footer .footer-title[has-caption] {
         opacity: 1;
         visibility: visible;
+      }
+
+      #overlay[toolbar-visible] app-toolbar.header div[main-title] {
+        align-items: center;
+        display: flex;
+        font-size: 16px;
+      }
+
+      #overlay[toolbar-visible] app-toolbar.header div iron-icon:not([has-title]) {
+        display: none;
       }
 
       /* Overlay Buttons */
@@ -179,6 +236,12 @@
         width: 30%;
       }
 
+      iron-icon {
+        margin: auto 0;
+        --iron-icon-width: 28px;
+        --iron-icon-height: 28px;
+      }
+
       @media (max-width: 600px) {
         #clickBlocks paper-icon-button {
           width: 40px;
@@ -202,7 +265,7 @@
 
     <div id="overlay" toolbar-visible$="[[_toolbarVisible]]" hover-enabled$="[[!_isTouch]]">
       <app-toolbar class="header">
-        <div main-title>[[activeImage.title]]</div>
+        <div main-title>Photo [[_getCurrentPhotoNumber(activeImage.index)]] of [[_imagesCount]] <iron-icon has-title$="[[activeImage._hasTitle]]" icon="sl-gallery:chevron-right"></iron-icon> [[activeImage.title]]</div>
         <paper-icon-button
             id="toggleFullscreen"
             icon="sl-gallery:fullscreen"
@@ -215,8 +278,18 @@
         </paper-icon-button>
       </app-toolbar>
 
-      <app-toolbar class="footer" has-caption$="[[activeImage._hasCaption]]">
-        <div main-title>[[activeImage.caption]]</div>
+      <app-toolbar class="footer">
+        <div main-title class="footer-title" has-caption$="[[activeImage._hasCaption]]">[[activeImage.caption]]</div>
+        <div id="imagePreviews" class="image-previews">
+          <div id="imagePreviewList" class="image-preview-list">
+            <template is="dom-repeat" items="{{_images}}" as="image">
+              <div on-click="_showImage" class="image-preview-container" active$="[[_isPreviewImageActive(index, activeImage.index)]]">
+                <img class="image-preview" src="[[image.src]]" />
+                <div class="image-preview-cover"></div>
+              </div>
+            </template>
+          </div>
+        </div>
       </app-toolbar>
 
       <paper-icon-button
@@ -282,6 +355,7 @@
           _isTouch: Boolean,
           _spinnerActive: Boolean,
           _toolbarVisible: Boolean,
+          _imagesCount: Number
         };
       }
 
@@ -380,6 +454,9 @@
           return;
         }
 
+        this._imagesCount = this.gallery._images.length;
+        this._images = [...this.gallery._images];
+
         // If no valid image index set, reset image and close slideshow
         if (index === '' || isNaN(index) || index < 0 || index >= this.gallery._images.length) {
           this._closeSlideshow();
@@ -397,7 +474,7 @@
         // Display spinner if image hasn't been loaded
         this._spinnerActive = !this.activeImage.loaded;
 
-        // Hide previous button if first image
+        // Hide previous button if firstimage 
         if (this.hasPreviousImage) {
           this.$.previousImageBlock.hidden = false;
         } else {
@@ -410,6 +487,33 @@
         } else {
           this.$.nextImageBlock.hidden = true;
         }
+
+        this._updateImagePreviwPosition()
+      }
+
+      _updateImagePreviwPosition() {
+        const imageWidth = 111;
+        const windowWidth = this.$.imagePreviews.offsetWidth;
+        const imagesWidth = this._imagesCount * imageWidth;
+        const imagePreviewList = this.shadowRoot.querySelector("#imagePreviewList");
+        const currentImageShift = (this.activeImage.index * imageWidth) + (imageWidth / 2);
+        var shift = 0;
+
+        if (windowWidth < imagesWidth) {
+          if (currentImageShift <= windowWidth / 2) {
+            shift = 0;
+          } else if (currentImageShift > windowWidth / 2 && currentImageShift < imagesWidth - windowWidth / 2) {
+            shift = currentImageShift - (windowWidth / 2);
+          } else {
+            shift = imagesWidth - windowWidth;
+          }
+        }
+
+        imagePreviewList.style.transform = `translateX(-${shift}px)`;
+      }
+
+      _getCurrentPhotoNumber(activeImageIndex) {
+        return ++activeImageIndex;
       }
 
       _preloadImage(image) {
@@ -462,6 +566,12 @@
       _nextImage() {
         if (this.hasNextImage) {
           window.location.hash = `/${this.gallery.prefix}/${+this.activeImage.index+1}`;
+        }
+      }
+
+      _showImage(event) {
+        if (event.model.index >= 0) {
+          window.location.hash = `/${this.gallery.prefix}/${+event.model.index}`;
         }
       }
 
@@ -532,6 +642,9 @@
         }
       }
 
+      _isPreviewImageActive(index, activeImageIndex) {
+        return index == activeImageIndex;
+      }
     }
 
     window.customElements.define(SLGallerySlideshow.is, SLGallerySlideshow);

@@ -47,6 +47,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         padding: 0;
         margin: 0 calc(-1 * var(--sl-gallery-gutter, 0px)) calc(-1 * var(--sl-gallery-gutter, 0px)) 0;
       }
+
+      :host([invisible]) .image-grid {
+        display: none;
+      }
     </style>
 
     <app-location
@@ -128,7 +132,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         // Create observer to watch for new nodes added from light dom
         this._observer = new Polymer.FlattenedNodesObserver(this, (info) => {
-          this._images = [...info.target.children];
+          this._images = [...info.target.querySelectorAll('sl-gallery-image')];
         });
       }
 
@@ -137,6 +141,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         // Remove observer when disconnected
         this._observer.disconnect();
+      }
+
+      open() {
+        window.location.hash = `/${this.prefix}/0`;
       }
 
       _handleGridClicked(event) {
