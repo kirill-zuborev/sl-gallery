@@ -75,6 +75,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             type: Boolean,
             computed: '_computeHasCaption(caption)',
           },
+          _hasTitle: {
+            type: Boolean,
+            computed: '_computeHasTitle(title)',
+          },
           src: String,
           small: String,
           title: String,
@@ -92,6 +96,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _computeHasCaption(caption) {
         return Boolean(caption);
+      }
+
+      _computeHasTitle(title) {
+        return Boolean(title);
       }
 
       _imageChanged(image) {
