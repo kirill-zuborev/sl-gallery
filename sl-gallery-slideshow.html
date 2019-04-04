@@ -224,17 +224,29 @@
 			#clickBlocks>div#previousImageBlock {
 				left: 0;
 				width: 30%;
+				z-index: 5;
 			}
 
 			#clickBlocks>div#nextImageBlock {
 				right: 0;
 				width: 30%;
+				z-index: 5;
+			}
+
+			#clickBlocks[is-panoramic]>div#previousImageBlock,
+			#clickBlocks[is-panoramic]>div#nextImageBlock {
+				width: 0;
 			}
 
 			iron-icon {
 				margin: auto 0;
 				--iron-icon-width: 28px;
 				--iron-icon-height: 28px;
+			}
+
+			#panoramImageViewer {
+				width: 100vw;
+				height: calc(100vh - 2 * 64px);
 			}
 
 			@media (max-width: 600px) {
@@ -295,8 +307,8 @@
 				on-click="_closeSlideshow">
 			</paper-icon-button>
 
-			<div id="clickBlocks">
-				<div id="toggleToolbar" on-click="_toggleToolbar"></div>
+			<div is-panoramic$="[[_isImagePanoramic]]" id="clickBlocks">
+				<div hidden$="[[_isImagePanoramic]]" id="toggleToolbar" on-click="_toggleToolbar"></div>
 				<div id="previousImageBlock" on-click="_previousImage">
 					<paper-icon-button icon="sl-gallery:chevron-left"></paper-icon-button>
 				</div>
@@ -326,7 +338,7 @@
 				</iron-image>
 			</template>
 			<template is="dom-if" if="{{_isImagePanoramic}}">
-				<hk-panoram-image-viewer image-url="[[_imageSrc]]"></hk-panoram-image-viewer>
+				<hk-panoram-image-viewer id="panoramImageViewer" image-url="[[_imageSrc]]"></hk-panoram-image-viewer>
 			</template>
 		</div>
 
@@ -358,7 +370,11 @@
 					_spinnerActive: Boolean,
 					_toolbarVisible: Boolean,
 					_imagesCount: Number,
-					_isImagePanoramic: Boolean
+					_isImagePanoramic: {
+						type: Boolean,
+						reflectToAttribute: true,
+						value: false
+					}
 				};
 			}
 
@@ -476,7 +492,7 @@
 				this._isImagePanoramic = this.activeImage.isPanoramic;
 
 				// Display spinner if image hasn't been loaded
-				this._spinnerActive = !this.activeImage.loaded;
+				this._spinnerActive = !this._isImagePanoramic && !this.activeImage.loaded;
 
 				// Hide previous button if firstimage 
 				if (this.hasPreviousImage) {
