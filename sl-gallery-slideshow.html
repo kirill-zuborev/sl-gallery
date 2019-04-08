@@ -562,7 +562,9 @@
 					this._spinnerActive = false;
 
 					if (!this.activeImage.loaded) {
-						this.activeImage.reference = this.$.image.shadowRoot.querySelector('img');
+						if (this.$.image) {
+							this.activeImage.reference = this.$.image.shadowRoot.querySelector('img');
+						}
 						this.activeImage.loaded = true;
 					}
 
