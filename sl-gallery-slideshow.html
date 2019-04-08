@@ -491,6 +491,10 @@
 				this._imageSrc = this.activeImage.src;
 				this._isImagePanoramic = this.activeImage.isPanoramic;
 
+				if (this._isImagePanoramic) {
+					this._toolbarVisible = true;
+				}
+
 				// Display spinner if image hasn't been loaded
 				this._spinnerActive = !this._isImagePanoramic && !this.activeImage.loaded;
 
