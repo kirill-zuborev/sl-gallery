@@ -238,6 +238,13 @@
 				width: 0;
 			}
 
+			#clickBlocks[toolbar-visible]>div#previousImageBlock,
+			#clickBlocks[toolbar-visible]>div#nextImageBlock,
+			#clickBlocks[toolbar-visible]>div#toggleToolbar {
+				top: 64px;
+				bottom: 64px;
+			}
+
 			iron-icon {
 				margin: auto 0;
 				--iron-icon-width: 28px;
@@ -247,6 +254,12 @@
 			#panoramImageViewer {
 				width: 100vw;
 				height: calc(100vh - 2 * 64px);
+			}
+
+			.image-preview__panoramic-icon {
+				position: absolute;
+				top: 0px;
+				left: 4px;
 			}
 
 			@media (max-width: 600px) {
@@ -293,8 +306,9 @@
 						<template is="dom-repeat" items="{{_images}}" as="image">
 							<div on-click="_showImage" class="image-preview-container"
 								active$="[[_isPreviewImageActive(index, activeImage.index)]]">
-								<img class="image-preview" src="[[image]]" />
+								<img class="image-preview" src="[[image.path]]" />
 								<div class="image-preview-cover"></div>
+								<iron-icon class="image-preview__panoramic-icon" hidden$="[[!image.isPanoramic]]" icon="sl-gallery:panoramic"></iron-icon>
 							</div>
 						</template>
 					</div>
@@ -307,7 +321,7 @@
 				on-click="_closeSlideshow">
 			</paper-icon-button>
 
-			<div is-panoramic$="[[_isImagePanoramic]]" id="clickBlocks">
+			<div toolbar-visible$="[[_toolbarVisible]]" is-panoramic$="[[_isImagePanoramic]]" id="clickBlocks">
 				<div hidden$="[[_isImagePanoramic]]" id="toggleToolbar" on-click="_toggleToolbar"></div>
 				<div id="previousImageBlock" on-click="_previousImage">
 					<paper-icon-button icon="sl-gallery:chevron-left"></paper-icon-button>
@@ -362,6 +376,7 @@
 						value: false,
 						observer: '_openedChanged',
 					},
+					_images: Array,
 					_imageError: String,
 					_imageLoaded: Boolean,
 					_imageSrc: String,
@@ -474,7 +489,7 @@
 				}
 
 				this._imagesCount = this.gallery._images.length;
-				this._images = this._getImageSources(this.gallery._images);
+				this._images = this._getImageList(this.gallery._images);
 
 				// If no valid image index set, reset image and close slideshow
 				if (index === '' || isNaN(index) || index < 0 || index >= this.gallery._images.length) {
@@ -540,8 +555,13 @@
 				return ++activeImageIndex;
 			}
 
-			_getImageSources(images) {
-				return images ? images.map(c => c.src) : [];
+			_getImageList(images) {
+				return images ? images.map(c => {
+					return {
+						path: c.src,
+						isPanoramic: c.isPanoramic
+					};
+				}) : [];
 			}
 
 			_preloadImage(image) {
