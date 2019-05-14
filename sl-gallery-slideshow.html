@@ -445,6 +445,10 @@
 				document.removeEventListener('fullscreenchange', this._fullscreenChanged);
 			}
 
+			clean() {
+				this._images = [];
+			}
+
 			_handleKeydown(event) {
 				if (event.keyCode === 27) { // ESC
 
