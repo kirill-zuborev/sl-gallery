@@ -107,25 +107,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         document.body.appendChild(this.slideshow);
       }
 
-      connectedCallback() {
-        super.connectedCallback();
-
-        // Create observer to watch for new nodes added from light dom
-        this._observer = new Polymer.FlattenedNodesObserver(this, (info) => {
-          this.slideshow.clean();
-          this._images = [...info.target.querySelectorAll('sl-gallery-image')];
-        });
-      }
-
-      disconnectedCallback() {
-        super.disconnectedCallback();
-
-        // Remove observer when disconnected
-        this._observer.disconnect();
-      }
-
       open() {
-        console.log(this.index);
+        this._images = [...this.querySelectorAll('sl-gallery-image')].map((image, index) => {
+          image.index = index;
+          return image
+        });
         this.index = 0;
 
         if (this._images && this._images[this.index]) {
@@ -138,13 +124,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       close() {
         this.slideshow.opened = false;
         this.index = null;
-      }
-
-      _imagesChanged(images) {
-        // Give each image an index based on position in array
-        images.forEach((image, i) => {
-          image.index = i;
-        });
+        this._images = null;
+        this.slideshow.clean();
       }
 
       _indexChanged(index) {
