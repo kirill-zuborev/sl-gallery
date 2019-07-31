@@ -487,7 +487,7 @@
 
 			_activeImageIndexChanged(index) {
 				// Exit if gallery not active, no images in gallery, or index is undefined
-				if (!this.gallery.active || !this.gallery._routeActive ||
+				if (!this.gallery.active ||
 					!this.gallery._images || index === undefined) {
 					return;
 				}
@@ -613,19 +613,19 @@
 
 			_previousImage() {
 				if (this.hasPreviousImage) {
-					window.location.hash = `/${this.gallery.prefix}/${+this.activeImage.index - 1}`;
+					--this.gallery.index;
 				}
 			}
 
 			_nextImage() {
 				if (this.hasNextImage) {
-					window.location.hash = `/${this.gallery.prefix}/${+this.activeImage.index + 1}`;
+					++this.gallery.index;
 				}
 			}
 
 			_showImage(event) {
 				if (event.model.index >= 0) {
-					window.location.hash = `/${this.gallery.prefix}/${+event.model.index}`;
+					this.gallery.index = +event.model.index;
 				}
 			}
 
@@ -660,17 +660,12 @@
 			}
 
 			_closeSlideshow(event) {
-				window.history.pushState({}, document.title,
-					window.location.pathname + window.location.search);
-				window.dispatchEvent(new CustomEvent('location-changed'));
-
-				// [TODO]: This can be removed after upstream change to reset route data
-				this.gallery._routeData = {};
-
 				this._exitFullscreen();
 
 				this._imageSmall = '';
 				this._imageSrc = '';
+				this.opened = false;
+				this.gallery.index = null;
 
 				this._spinnerActive = false;
 

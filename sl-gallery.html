@@ -9,8 +9,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../polymer/polymer-element.html">
-<link rel="import" href="../app-route/app-location.html">
-<link rel="import" href="../app-route/app-route.html">
 <link rel="import" href="sl-gallery-image.html">
 <link rel="import" href="sl-gallery-slideshow.html">
 
@@ -53,18 +51,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
-    <app-location
-        route="{{_route}}"
-        use-hash-as-path>
-    </app-location>
-
-    <app-route
-        route="{{_route}}"
-        pattern="/[[prefix]]/:index"
-        data="{{_routeData}}"
-        active="{{_routeActive}}">
-    </app-route>
-
     <div class="image-grid" on-click="_handleGridClicked">
       <slot></slot>
     </div>
@@ -73,7 +59,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script>
     /**
      * Silverlinkz Photo Gallery
-     * A Polymer hash-route based photo gallery.
+     * A Polymer photo gallery.
      *
      * @customElement
      * @polymer
@@ -88,26 +74,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           active: {
             type: Boolean,
             value: true,
-            observer: '_activeChanged',
-          },
-          prefix: {
-            type: String,
-            value: 'i',
           },
           _images: {
             type: Array,
             observer: '_imagesChanged',
           },
-          _route: Object,
-          _routeData: Object,
-          _routeActive: Boolean,
+          index: {
+            type: Number,
+            observer: '_indexChanged'
+          }
         };
       }
 
       static get observers() {
         return [
-          '_routeActiveChanged(_routeActive)',
-          '_routeIndexChanged(_routeData.index)',
         ];
       }
 
@@ -145,13 +125,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       open() {
-        window.location.hash = `/${this.prefix}/0`;
+        console.log(this.index);
+        this.index = 0;
+
+        if (this._images && this._images[this.index]) {
+          this.slideshow.opened = true;
+        } else {
+          this.slideshow.opened = false;
+        }
       }
 
-      _handleGridClicked(event) {
-        if (event.target.index !== undefined) {
-          window.location.hash = `/${this.prefix}/${event.target.index}`;
-        }
+      close() {
+        this.slideshow.opened = false;
+        this.index = null;
       }
 
       _imagesChanged(images) {
@@ -159,34 +145,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         images.forEach((image, i) => {
           image.index = i;
         });
-
-        // Manually call changed methods when images change to update routes
-        // [TODO]: Refactor so this is no longer necessary
-        this._activeChanged();
       }
 
-      _activeChanged(active, old) {
-        // Manually call changed methods when active changes to update routes
-        // [TODO]: Refactor so this is no longer necessary
-        if (active !== undefined && old === undefined) return;
-        this._routeActiveChanged(this._routeActive);
-        this._routeIndexChanged(this._routeData.index);
-      }
-
-      _routeActiveChanged(routeActive) {
-        // [TODO]: Should reflect state to slideshow and handle view from slideshow.active
-        if (this.active && routeActive && this._images && this._images[this._routeData.index]) {
-          this.slideshow.opened = true;
-        } else {
-          this.slideshow.opened = false;
-        }
-      }
-
-      _routeIndexChanged(routeIndex) {
-        if (!this.active || !this._routeActive || !this._images) {
+      _indexChanged(index) {
+        if (index === null || !this._images) {
           this.slideshow.activeImage = undefined;
         } else {
-          this.slideshow.activeImage = this._images[routeIndex];
+          this.slideshow.activeImage = this._images[index];
         }
       }
 
