@@ -256,6 +256,11 @@
 				height: calc(100vh - 2 * 64px);
 			}
 
+			.image-container iron-image[hidden],
+			#panoramImageViewer[hidden] {
+				display: none;
+			}
+
 			.image-preview__panoramic-icon {
 				position: absolute;
 				top: 0px;
@@ -338,22 +343,19 @@
 		</paper-spinner-lite>
 
 		<div class="image-container">
-			<template is="dom-if" if="{{!_isImagePanoramic}}">
-				<iron-image
-					id="image"
-					src="[[_imageSrc]]"
-					alt=""
-					preload
-					fade
-					sizing="contain"
-					placeholder="[[_imageSmall]]"
-					loaded="{{_imageLoaded}}"
-					error="{{_imageError}}">
-				</iron-image>
-			</template>
-			<template is="dom-if" if="{{_isImagePanoramic}}">
-				<hk-panoram-image-viewer id="panoramImageViewer" image-url="[[_imageSrc]]"></hk-panoram-image-viewer>
-			</template>
+			<iron-image
+				id="image"
+				hidden$="[[_isImagePanoramic]]"
+				src="[[_getImageSrc(_imageSrc, _isImagePanoramic)]]"
+				alt=""
+				preload
+				fade
+				sizing="contain"
+				placeholder="[[_imageSmall]]"
+				loaded="{{_imageLoaded}}"
+				error="{{_imageError}}">
+			</iron-image>
+			<hk-panoram-image-viewer hidden$="[[!_isImagePanoramic]]" id="panoramImageViewer" image-url="[[_getPanoramImageSrc(_imageSrc, _isImagePanoramic)]]"></hk-panoram-image-viewer>
 		</div>
 
 	</template>
@@ -694,6 +696,14 @@
 
 			_isPreviewImageActive(index, activeImageIndex) {
 				return index == activeImageIndex;
+			}
+
+			_getImageSrc(_imageSrc, _isImagePanoramic) {
+				return _isImagePanoramic ? null : _imageSrc;
+			}
+
+			_getPanoramImageSrc(_imageSrc, _isImagePanoramic) {
+				return _isImagePanoramic ? _imageSrc : null;
 			}
 		}
 
